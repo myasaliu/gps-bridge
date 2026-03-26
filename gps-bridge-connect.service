@@ -1,0 +1,14 @@
+[Unit]
+Description=gps-bridge GPS relay connector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.gps-bridge/connect.env
+ExecStart=gps-bridge connect --relay ${GPS_RELAY_URL} --token ${GPS_TOKEN}
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
