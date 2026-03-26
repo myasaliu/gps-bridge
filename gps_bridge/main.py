@@ -99,7 +99,7 @@ def keygen(force: bool) -> None:
 @cli.command()
 @click.option(
     "--host",
-    default="0.0.0.0",
+    default="127.0.0.1",
     show_default=True,
     help="Host address to bind the server to.",
 )

@@ -15,6 +15,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import stat
 from pathlib import Path
 from typing import Any
 
@@ -64,6 +65,8 @@ def _write_raw(data: dict[str, Any]) -> None:
     with CONFIG_FILE.open("w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2)
         fh.write("\n")
+    # Restrict to owner read/write only (private key must not be world-readable)
+    os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)
 
 
 # ---------------------------------------------------------------------------
