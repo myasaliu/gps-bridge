@@ -11,6 +11,7 @@ Commands:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import sys
@@ -139,6 +140,38 @@ def serve(host: str, port: int, log_level: str) -> None:
         log_level=log_level.lower(),
         reload=False,
     )
+
+
+# ---------------------------------------------------------------------------
+# connect
+# ---------------------------------------------------------------------------
+
+
+@cli.command()
+@click.option(
+    "--relay",
+    required=True,
+    help="Base WebSocket URL of the relay, e.g. wss://example.com/relay",
+)
+@click.option(
+    "--token",
+    required=True,
+    help="Pairing token shared with the phone app.",
+)
+def connect(relay: str, token: str) -> None:
+    """Connect to the relay and receive encrypted GPS from the phone."""
+    if not config_exists():
+        click.echo(
+            "No keypair found. Run `gps-bridge keygen` before connecting.",
+            err=True,
+        )
+        sys.exit(1)
+
+    from gps_bridge.connector import run
+    try:
+        asyncio.run(run(relay, token))
+    except KeyboardInterrupt:
+        click.echo("\nStopped.")
 
 
 # ---------------------------------------------------------------------------
