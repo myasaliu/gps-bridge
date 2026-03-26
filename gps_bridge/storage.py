@@ -80,15 +80,17 @@ def init_db() -> None:
 
     Safe to call multiple times. Also migrates existing DBs that lack the
     'name' column by adding it with a default value of 'default'.
+    Migration runs before index creation so the index can reference 'name'.
     """
     with _get_conn() as conn:
         conn.execute(_CREATE_TABLE_SQL)
-        conn.execute(_CREATE_INDEX_SQL)
 
-        # Migration: add 'name' column to existing databases
+        # Migration: add 'name' column before creating the index that depends on it
         cols = [row[1] for row in conn.execute("PRAGMA table_info(locations)")]
         if "name" not in cols:
             conn.execute("ALTER TABLE locations ADD COLUMN name TEXT NOT NULL DEFAULT 'default'")
+
+        conn.execute(_CREATE_INDEX_SQL)
 
 
 # ---------------------------------------------------------------------------
