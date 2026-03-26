@@ -1,0 +1,2 @@
+[console_scripts]
+gps-bridge = gps_bridge.main:cli
