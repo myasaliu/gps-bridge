@@ -160,7 +160,7 @@ def keygen(force: bool) -> None:
     help="Uvicorn log level.",
 )
 def serve(host: str, port: int, log_level: str) -> None:
-    """Start the gps-bridge FastAPI server."""
+    """Start the gps-bridge local HTTP server (advanced — most users should use 'connect' instead)."""
     if not config_exists():
         click.echo(
             "No keypair found. Run `gps-bridge keygen` before starting the server.",
