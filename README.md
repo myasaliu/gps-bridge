@@ -30,8 +30,7 @@ gps-bridge latest  ←── called by OpenClaw skill
 ## Requirements
 
 - Python 3.10+
-- Linux / macOS (Windows: manual mode only)
-- A pairing token and relay URL from your OpenClaw setup
+- Linux / macOS / Windows
 
 ---
 
@@ -44,7 +43,7 @@ pip install gps-bridge
 Or from source:
 
 ```bash
-git clone https://github.com/myasaliu/gps-bridge.git
+git clone https://github.com/luna61ouo/gps-bridge.git
 cd gps-bridge
 pip install -e .
 ```
@@ -71,12 +70,11 @@ Copy the public key — you will enter it into the phone app.
 ### 2. Connect to the relay
 
 ```bash
-gps-bridge connect --relay wss://relay.example.com/relay --token your-token
+gps-bridge connect --token your-token
 ```
 
-Once connected, GPS data sent from the phone will appear:
+The default relay server is pre-configured. Once connected, GPS data sent from the phone will appear:
 ```
-Connecting to relay: wss://relay.example.com/relay/ws/your-token
 Waiting for GPS data from phone... (Ctrl+C to stop)
 [ok] 2026-03-26T06:31:02  lat=24.984968  lng=121.285887
 ```
@@ -107,7 +105,7 @@ gps-bridge latest
 Simply run in a terminal whenever you want to receive GPS:
 
 ```bash
-gps-bridge connect --relay wss://relay.example.com/relay --token your-token
+gps-bridge connect --token your-token
 ```
 
 ### Option B: Auto-start with systemd (Linux)
@@ -119,7 +117,7 @@ This runs `gps-bridge connect` automatically when you log in, without needing a 
 ```bash
 mkdir -p ~/.gps-bridge
 cp connect.env.example ~/.gps-bridge/connect.env
-nano ~/.gps-bridge/connect.env   # fill in your relay URL and token
+nano ~/.gps-bridge/connect.env   # fill in your token
 ```
 
 **Step 2 — Install the user service (no sudo required):**
@@ -152,10 +150,13 @@ systemctl --user stop gps-bridge-connect
 | Command | Description |
 |---|---|
 | `gps-bridge keygen [--force]` | Generate a new X25519 keypair |
-| `gps-bridge connect --relay URL --token TOKEN` | Connect to relay and receive GPS |
-| `gps-bridge latest` | Print latest GPS fix as JSON |
-| `gps-bridge history [--limit N]` | Print recent history as JSON array |
 | `gps-bridge pubkey` | Print the current public key |
+| `gps-bridge connect --token TOKEN` | Connect to relay and receive GPS |
+| `gps-bridge latest [--name NAME]` | Print latest GPS fix as JSON |
+| `gps-bridge history [--limit N] [--name NAME]` | Print recent history as JSON array |
+| `gps-bridge list` | List all trackers with latest fix and record count |
+| `gps-bridge status [--name NAME]` | Show tracker status and phone-side settings |
+| `gps-bridge config [--timezone TZ]` | Show or update settings |
 
 ---
 
@@ -163,9 +164,9 @@ systemctl --user stop gps-bridge-connect
 
 Once `gps-bridge` is running, add the GPS skill to OpenClaw so it can query your location automatically.
 
-The skill calls `gps-bridge latest` and handles freshness, reverse geocoding hints, and privacy (no raw coordinates in group chats).
+The skill handles setup, pairing, freshness checks, and privacy (no raw coordinates in group chats).
 
-See [`skills/gps-location/SKILL.md`](skills/gps-location/SKILL.md) for the skill definition you can copy into your OpenClaw setup.
+See [`skills/gps-location/SKILL.md`](skills/gps-location/SKILL.md) for the skill definition.
 
 ---
 
@@ -177,7 +178,7 @@ See [`skills/gps-location/SKILL.md`](skills/gps-location/SKILL.md) for the skill
 |---------|-------------|
 | [gps-geocoder-tw](https://github.com/luna61ouo/gps-geocoder-tw) | Offline reverse geocoder for Taiwan — converts coordinates to street-level location names (行政區、街道、地標) using OpenStreetMap data. No API keys, no token cost. |
 
-Install any extension with `pip install <package>`. Each extension reads from the same `~/.gps-bridge/` database — no additional configuration needed.
+Install any extension with `pip install <package>`.
 
 ---
 
@@ -202,7 +203,7 @@ AES-GCM encrypt GPS payload       ──►  AES-GCM decrypt → store in SQLite
 ## Data storage
 
 - SQLite database at `~/.gps-bridge/locations.db`
-- Most recent **1000** records are retained
+- Most recent **1000** records are retained (configurable via `gps-bridge config`)
 - All data stays on your own machine
 
 ---
