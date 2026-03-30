@@ -54,7 +54,9 @@ CREATE TABLE IF NOT EXISTS tracker_settings (
     update_interval_seconds     INTEGER,
     history_granularity_seconds INTEGER,
     retention_hours             INTEGER,
-    last_updated                TEXT    NOT NULL
+    last_updated                TEXT    NOT NULL,
+    phone_online                INTEGER NOT NULL DEFAULT 0,
+    phone_last_seen             TEXT
 );
 """
 
@@ -113,6 +115,14 @@ def init_db() -> None:
             conn.execute("ALTER TABLE locations ADD COLUMN is_history INTEGER NOT NULL DEFAULT 0")
 
         conn.execute(_CREATE_TRACKER_SETTINGS_SQL)
+
+        # Migrations: add phone status columns if upgrading from older schema
+        ts_cols = [row[1] for row in conn.execute("PRAGMA table_info(tracker_settings)")]
+        if "phone_online" not in ts_cols:
+            conn.execute("ALTER TABLE tracker_settings ADD COLUMN phone_online INTEGER NOT NULL DEFAULT 0")
+        if "phone_last_seen" not in ts_cols:
+            conn.execute("ALTER TABLE tracker_settings ADD COLUMN phone_last_seen TEXT")
+
         conn.execute(_CREATE_INDEX_SQL)
         conn.execute(_CREATE_HISTORY_INDEX_SQL)
 
@@ -295,6 +305,58 @@ def get_history(limit: int = 10, name: str | None = None) -> list[dict]:
                 (limit,),
             ).fetchall()
     return [dict(row) for row in rows]
+
+
+def update_phone_status(name: str, online: bool) -> None:
+    """
+    Mark the phone for the given tracker as online or offline.
+
+    Ensures a tracker_settings row exists (upsert) so status can be tracked
+    even before any GPS data has been received.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    with _get_conn() as conn:
+        conn.execute(
+            """
+            INSERT INTO tracker_settings
+                (name, last_updated, phone_online, phone_last_seen)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                phone_online    = excluded.phone_online,
+                phone_last_seen = CASE
+                    WHEN excluded.phone_online = 1 THEN excluded.phone_last_seen
+                    ELSE phone_last_seen
+                END,
+                last_updated    = excluded.last_updated
+            """,
+            (name, now, 1 if online else 0, now if online else None),
+        )
+
+
+def get_phone_status(name: str | None = None) -> list[dict]:
+    """
+    Return phone online status for one or all trackers.
+
+    Each dict has keys: name, phone_online (bool), phone_last_seen (ISO str or None).
+    """
+    with _get_conn() as conn:
+        if name is not None:
+            rows = conn.execute(
+                "SELECT name, phone_online, phone_last_seen FROM tracker_settings WHERE name = ?",
+                (name,),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT name, phone_online, phone_last_seen FROM tracker_settings ORDER BY last_updated DESC"
+            ).fetchall()
+    return [
+        {
+            "name": row["name"],
+            "phone_online": bool(row["phone_online"]),
+            "phone_last_seen": row["phone_last_seen"],
+        }
+        for row in rows
+    ]
 
 
 def get_trackers() -> list[dict]:

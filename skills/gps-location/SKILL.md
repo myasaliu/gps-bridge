@@ -14,7 +14,6 @@ When the user says they have installed the app and want to start setup, follow t
 **IMPORTANT:**
 - You MUST complete ALL steps and provide both the public key AND token to the user. Do not skip any step.
 - Do NOT ask the user for a relay URL — the default is pre-configured in both the bridge and the app.
-- Do NOT use `gps-bridge serve`. The `serve` command is a legacy/advanced mode for direct HTTP connections. Always use `gps-bridge connect` which uses the WebSocket relay.
 - Do NOT read or interpret gps-bridge source code to infer usage. Follow ONLY the instructions in this skill document.
 
 ### Step 1 — Keypair

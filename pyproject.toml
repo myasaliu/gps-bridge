@@ -24,8 +24,6 @@ classifiers = [
     "Topic :: Security :: Cryptography",
 ]
 dependencies = [
-    "fastapi>=0.110.0",
-    "uvicorn>=0.29.0",
     "cryptography>=42.0.0",
     "click>=8.1.0",
     "timezonefinder>=6.0.0",

@@ -23,7 +23,7 @@ from cryptography.exceptions import InvalidTag
 
 from gps_bridge.config import load_private_key
 from gps_bridge.crypto import decrypt_payload
-from gps_bridge.storage import init_db, insert_location, update_tracker_settings
+from gps_bridge.storage import init_db, insert_location, update_phone_status, update_tracker_settings
 
 logger = logging.getLogger("gps_bridge.connector")
 
@@ -49,6 +49,13 @@ async def run(relay_url: str, token: str, name: str = "default") -> None:
     async for websocket in websockets.connect(ws_url):
         try:
             async for raw in websocket:
+                # Control message from relay (not an encrypted GPS payload)
+                if raw == '{"type":"peer_disconnected"}':
+                    logger.info("[%s] Phone disconnected (peer_disconnected from relay)", name)
+                    print(f"[{name}] Phone disconnected.")
+                    update_phone_status(name, False)
+                    continue
+                update_phone_status(name, True)
                 _handle_message(raw, private_key, name)
         except websockets.ConnectionClosed:
             logger.warning("Connection closed, reconnecting...")

@@ -3,8 +3,7 @@ main.py - CLI entry point for gps-bridge.
 
 Commands:
     gps-bridge keygen                           Generate a new X25519 keypair.
-    gps-bridge serve                            Start the FastAPI server.
-    gps-bridge connect --relay URL --token T    Receive GPS from phone.
+    gps-bridge connect --token T [--relay URL]  Receive GPS from phone via relay.
     gps-bridge latest [--name NAME]             Print the latest GPS fix as JSON.
     gps-bridge history [--limit N] [--name N]   Print recent GPS history as JSON.
     gps-bridge list                             List all trackers with latest fix.
@@ -21,7 +20,6 @@ import logging
 import sys
 
 import click
-import uvicorn
 
 from gps_bridge.config import (
     CONFIG_FILE,
@@ -134,52 +132,6 @@ def keygen(force: bool) -> None:
 # ---------------------------------------------------------------------------
 # serve
 # ---------------------------------------------------------------------------
-
-
-@cli.command()
-@click.option(
-    "--host",
-    default="127.0.0.1",
-    show_default=True,
-    help="Host address to bind the server to.",
-)
-@click.option(
-    "--port",
-    default=8766,
-    show_default=True,
-    type=int,
-    help="TCP port to listen on.",
-)
-@click.option(
-    "--log-level",
-    default="info",
-    show_default=True,
-    type=click.Choice(
-        ["critical", "error", "warning", "info", "debug"], case_sensitive=False
-    ),
-    help="Uvicorn log level.",
-)
-def serve(host: str, port: int, log_level: str) -> None:
-    """Start the gps-bridge local HTTP server (advanced — most users should use 'connect' instead)."""
-    if not config_exists():
-        click.echo(
-            "No keypair found. Run `gps-bridge keygen` before starting the server.",
-            err=True,
-        )
-        sys.exit(1)
-
-    click.echo(f"Starting gps-bridge server on {host}:{port} ...")
-    click.echo(f"POST /gps          - receive encrypted GPS payload")
-    click.echo(f"GET  /gps/latest   - fetch latest location")
-    click.echo(f"GET  /health       - health check")
-
-    uvicorn.run(
-        "gps_bridge.server:app",
-        host=host,
-        port=port,
-        log_level=log_level.lower(),
-        reload=False,
-    )
 
 
 # ---------------------------------------------------------------------------

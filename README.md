@@ -169,6 +169,18 @@ See [`skills/gps-location/SKILL.md`](skills/gps-location/SKILL.md) for the skill
 
 ---
 
+## Extensions
+
+`gps-bridge` provides raw GPS coordinates. The following optional packages extend its functionality:
+
+| Package | Description |
+|---------|-------------|
+| [gps-geocoder-tw](https://github.com/luna61ouo/gps-geocoder-tw) | Offline reverse geocoder for Taiwan — converts coordinates to street-level location names (行政區、街道、地標) using OpenStreetMap data. No API keys, no token cost. |
+
+Install any extension with `pip install <package>`. Each extension reads from the same `~/.gps-bridge/` database — no additional configuration needed.
+
+---
+
 ## Security model
 
 ```
