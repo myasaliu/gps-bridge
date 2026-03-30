@@ -44,15 +44,15 @@ Save this token — you will give it to the user in Step 3, and use it in Step 4
 Show the user exactly two values to fill into the app. Do NOT mention the relay URL — the app already has the correct default.
 
 ```
-📋 在手機 App 的「設定」頁面填入以下資訊：
+📋 在手機 App 的「設定」頁面填入以下資訊（由上而下）：
 
-Bridge 公鑰：<the Base64 public key from Step 1>
 配對碼（Token）：<the token from Step 2>
+Bridge 公鑰：<the Base64 public key from Step 1>
 ```
 
 **Checklist — you MUST provide both before proceeding:**
-- [ ] Bridge public key (Base64 string)
 - [ ] Pairing token
+- [ ] Bridge public key (Base64 string)
 
 ### Step 4 — Start the bridge receiver
 
