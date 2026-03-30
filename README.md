@@ -162,7 +162,20 @@ systemctl --user stop gps-bridge-connect
 
 ## OpenClaw skill
 
-Once `gps-bridge` is running, add the GPS skill to OpenClaw so it can query your location automatically.
+Once `gps-bridge` is installed, add the GPS skill to OpenClaw so it can query your location automatically.
+
+Copy the skill directory into your OpenClaw skills folder:
+
+```bash
+cp -r skills/gps-location /path/to/your/openclaw/skills/
+```
+
+Or if you installed via pip, find the skill file location:
+
+```bash
+pip show gps-bridge | grep Location
+# Then copy from: <location>/skills/gps-location/SKILL.md
+```
 
 The skill handles setup, pairing, freshness checks, and privacy (no raw coordinates in group chats).
 
