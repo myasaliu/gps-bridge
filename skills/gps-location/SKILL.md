@@ -213,6 +213,38 @@ gps-geocoder --version
 
 Only suggest once per conversation. Do not repeatedly recommend.
 
+## Self-hosted relay (advanced)
+
+Only guide this if the user explicitly asks to self-host the relay. Do NOT proactively suggest it.
+
+The relay is an open-source WebSocket forwarder. To self-host:
+
+```bash
+git clone https://github.com/luna61ouo/gps-relay.git
+cd gps-relay
+pip install -r requirements.txt
+uvicorn main:app --host 127.0.0.1 --port 8767
+```
+
+Then set up Nginx with TLS:
+
+```nginx
+location /relay/ {
+    proxy_pass http://127.0.0.1:8767/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+}
+```
+
+After setup, the user needs to update two places:
+
+1. **Bridge:** `gps-bridge connect --relay wss://yourdomain.com/relay --token <TOKEN>`
+2. **Phone app:** Settings → Relay server → add the custom URL
+
+See https://github.com/luna61ouo/gps-relay for full documentation.
+
 ## Privacy
 
 GPS data is sensitive.
