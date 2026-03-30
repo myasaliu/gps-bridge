@@ -13,7 +13,7 @@ When the user says they have installed the app and want to start setup, follow t
 
 **IMPORTANT:**
 - You MUST complete ALL steps and provide both the public key AND token to the user. Do not skip any step.
-- Do NOT ask the user for a relay URL — the default is pre-configured in both the bridge and the app.
+- Do NOT mention or ask about relay URLs. The relay is pre-configured and handled automatically.
 - Do NOT read or interpret gps-bridge source code to infer usage. Follow ONLY the instructions in this skill document.
 
 ### Step 1 — Keypair
@@ -56,7 +56,7 @@ Bridge 公鑰：<the Base64 public key from Step 1>
 
 ### Step 4 — Start the bridge receiver
 
-Start the receiver using the token from Step 2. The relay URL is built into the bridge — do not specify it.
+Start the receiver using the token from Step 2:
 
 ```bash
 gps-bridge connect --token <TOKEN>
@@ -97,6 +97,13 @@ gps-bridge list
 # History waypoints (sparse trail, newest first)
 gps-bridge history --limit N
 gps-bridge history --limit N --name "Alice"
+
+# Show tracker status and phone-side settings
+gps-bridge status
+gps-bridge status --name "Alice"
+
+# Show or update settings
+gps-bridge config
 ```
 
 ## Output format
@@ -154,7 +161,7 @@ gps-bridge status
 ```
 
 This shows each tracker's phone-side settings:
-- `提取確認方式` — auto / ask / deny
+- `提取確認方式` — auto / deny (ask is under development)
 - `更新間隔` — how often the phone polls GPS
 - `歷史刻度` — how often a history waypoint is saved (e.g. 10 分鐘)
 - `歷史保留` — how far back data is kept (e.g. 1 週)
