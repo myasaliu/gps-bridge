@@ -1,11 +1,69 @@
 ---
 name: gps-location
-description: Get the user's current GPS location or movement history via gps-bridge CLI. Use when the user asks where they are, asks for nearby places, mentions location/GPS/座標/位置, needs directions, wants to know where they went, or when any task benefits from knowing the user's physical location (e.g. weather with no city specified, finding nearby restaurants, travel time estimates, reviewing past routes).
+description: Get the user's current raw GPS coordinates or movement history via gps-bridge CLI. Use when the user asks where they are, mentions location/GPS/座標/位置, needs directions, wants to know where they went, or when any task benefits from knowing the user's physical location.
 ---
 
 # GPS Location
 
 Retrieve GPS coordinates from the locally installed `gps-bridge` CLI.
+
+## Setup (first-time pairing)
+
+When the user says they have installed the app and want to start setup, follow these steps in order.
+
+### Step 1 — Keypair
+
+Check if a keypair already exists:
+
+```bash
+gps-bridge pubkey
+```
+
+- If it prints a Base64 key → keypair exists, use it, **skip keygen**.
+- If it errors → run `gps-bridge keygen` to generate one, then print the public key.
+
+### Step 2 — Token
+
+Generate a random pairing token and show it to the user:
+
+```python
+import secrets; print(secrets.token_urlsafe(32))
+```
+
+Tell the user: "This is your pairing token. Keep it private — anyone with it can connect to your GPS stream."
+
+### Step 3 — Start the bridge receiver
+
+```bash
+gps-bridge connect --relay wss://openclaw-gps-track.duckdns.org/relay --token <TOKEN>
+```
+
+Use the default relay URL above. Do not ask the user about relay unless they specifically request self-hosting or a custom relay.
+
+Leave this command running in a terminal. The bridge now waits for the phone.
+
+### Step 4 — Guide the user to configure the app
+
+Tell the user to open the app → Settings, and fill in three fields:
+
+| Field | Value |
+|-------|-------|
+| Token（配對碼） | the token from Step 2 |
+| 伺服器公鑰 | the Base64 public key from Step 1 |
+| Relay Server | leave as default (already pre-filled) |
+
+### Step 5 — Verify
+
+After the user taps "Start Tracking" in the app, wait a few seconds then run:
+
+```bash
+gps-bridge latest
+```
+
+- If a record appears → setup complete. Tell the user GPS data is flowing.
+- If `{"status": "no data"}` → check that `gps-bridge connect` is still running and the token matches in both places.
+
+---
 
 ## Commands
 
@@ -121,10 +179,25 @@ and readability both suffer beyond that.
 
 ## Using the coordinates
 
-- Reverse geocoding / place lookup: web search `"restaurants near 24.9849,121.2858"`
-- Weather without city: `wttr.in/24.9849,121.2858`
-- Map link: `https://www.google.com/maps?q={lat},{lng}`
 - Coordinates are WGS-84 decimal degrees.
+- Map link: `https://www.google.com/maps?q={lat},{lng}`
+- Weather: `wttr.in/{lat},{lng}`
+
+## Extensions
+
+When GPS coordinates fall within Taiwan (lat 21.8–26.5, lng 119.2–122.2), check if `gps-geocoder` command is available:
+
+```bash
+gps-geocoder --version
+```
+
+- If available → use `gps-geocoder geocode --lat X --lng Y` for offline reverse geocoding (no token cost).
+- If not available → suggest the user install it:
+  "你的座標在台灣，可以安裝 gps-geocoder-tw 來離線查詢地名，不需要花費額外 token：
+  `pip install gps-geocoder-tw && gps-geocoder init`
+  詳情：https://github.com/luna61ouo/gps-geocoder-tw"
+
+Only suggest once per conversation. Do not repeatedly recommend.
 
 ## Privacy
 
