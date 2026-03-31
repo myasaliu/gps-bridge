@@ -29,7 +29,17 @@ gps-bridge pubkey
 
 Save the public key — you will give it to the user in Step 3.
 
-### Step 2 — Token
+### Step 2 — Determine tracker name
+
+Choose a name for this tracker. This is how OpenClaw will identify whose location to query.
+
+- If this is the **first/only user**, use the user's name or nickname (e.g. "Luna", "Alice"). If unsure, ask the user what name they'd like.
+- If there are **already other trackers**, pick a name that distinguishes this user.
+- **Do NOT use "default"** — always use a meaningful name.
+
+Save this name — you will use it in Step 5.
+
+### Step 3 — Token
 
 Generate a random pairing token:
 
@@ -37,16 +47,16 @@ Generate a random pairing token:
 import secrets; print(secrets.token_urlsafe(32))
 ```
 
-Save this token — you will give it to the user in Step 3, and use it in Step 4.
+Save this token — you will give it to the user in Step 4, and use it in Step 5.
 
-### Step 3 — Give the user the pairing info
+### Step 4 — Give the user the pairing info
 
 Show the user exactly two values to fill into the app. Do NOT mention the relay URL — the app already has the correct default.
 
 ```
 📋 在手機 App 的「設定」頁面填入以下資訊（由上而下）：
 
-配對碼（Token）：<the token from Step 2>
+配對碼（Token）：<the token from Step 3>
 Bridge 公鑰：<the Base64 public key from Step 1>
 ```
 
@@ -54,22 +64,28 @@ Bridge 公鑰：<the Base64 public key from Step 1>
 - [ ] Pairing token
 - [ ] Bridge public key (Base64 string)
 
-### Step 4 — Start the bridge receiver
+### Step 5 — Start the bridge receiver
 
-Start the receiver using the token from Step 2:
+Start the receiver with the token from Step 3 and the name from Step 2:
 
 ```bash
-gps-bridge connect --token <TOKEN>
+gps-bridge connect --token <TOKEN> --name <TRACKER_NAME>
+```
+
+The token is automatically saved to config.json. Next time you can reconnect with just:
+
+```bash
+gps-bridge connect --name <TRACKER_NAME>
 ```
 
 Leave this command running. The bridge now waits for the phone.
 
-### Step 5 — Verify (CRITICAL)
+### Step 6 — Verify (CRITICAL)
 
 After the user taps "Start Tracking" in the app, wait a few seconds then run:
 
 ```bash
-gps-bridge latest
+gps-bridge latest --name <TRACKER_NAME>
 ```
 
 - If a record appears → setup complete. Tell the user GPS data is flowing.

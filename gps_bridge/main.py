@@ -153,9 +153,8 @@ def keygen(force: bool) -> None:
 )
 @click.option(
     "--name",
-    default="default",
-    show_default=True,
-    help="Tracker identifier for this connection (e.g. Alice).",
+    required=True,
+    help="Tracker name (e.g. the user's name: Alice, Bob).",
 )
 def connect(relay: str, token: str | None, name: str) -> None:
     """Connect to the relay and receive encrypted GPS from the phone."""
