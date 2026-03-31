@@ -234,6 +234,19 @@ def load_public_key() -> X25519PublicKey:
     return public_key_from_bytes(raw)
 
 
+def save_connection_token(token: str) -> None:
+    """Persist the pairing token into config.json for reuse."""
+    data = _read_raw()
+    data["token"] = token
+    _write_raw(data)
+
+
+def load_connection_token() -> str | None:
+    """Load the stored pairing token, or None if not set."""
+    data = _read_raw()
+    return data.get("token")
+
+
 def load_public_key_b64() -> str:
     """Return the base64-encoded public key string directly from config."""
     if not CONFIG_FILE.exists():

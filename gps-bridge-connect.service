@@ -5,9 +5,10 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-EnvironmentFile=%h/.gps-bridge/connect.env
+# Token is stored in ~/.gps-bridge/config.json (saved on first `gps-bridge connect --token <TOKEN>`)
+# No EnvironmentFile or connect.env needed.
 # Replace the path below with the output of: which gps-bridge
-ExecStart=/usr/local/bin/gps-bridge connect --relay ${GPS_RELAY_URL} --token ${GPS_TOKEN}
+ExecStart=/usr/local/bin/gps-bridge connect
 Restart=on-failure
 RestartSec=10
 

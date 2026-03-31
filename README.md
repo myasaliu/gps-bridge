@@ -105,19 +105,23 @@ gps-bridge latest
 Simply run in a terminal whenever you want to receive GPS:
 
 ```bash
+# First time: provide the token (it gets saved to config.json)
 gps-bridge connect --token your-token
+
+# After that: just run without --token
+gps-bridge connect
 ```
 
 ### Option B: Auto-start with systemd (Linux)
 
 This runs `gps-bridge connect` automatically when you log in, without needing a terminal open.
 
-**Step 1 — Create the config file:**
+**Step 1 — Save your token (one-time):**
 
 ```bash
-mkdir -p ~/.gps-bridge
-cp connect.env.example ~/.gps-bridge/connect.env
-nano ~/.gps-bridge/connect.env   # fill in your token
+# Run once with --token to save it to ~/.gps-bridge/config.json
+gps-bridge connect --token your-token
+# Press Ctrl+C after it starts successfully
 ```
 
 **Step 2 — Install the user service (no sudo required):**

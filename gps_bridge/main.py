@@ -148,8 +148,8 @@ def keygen(force: bool) -> None:
 )
 @click.option(
     "--token",
-    required=True,
-    help="Pairing token shared with the phone app.",
+    default=None,
+    help="Pairing token. If omitted, uses the previously saved token.",
 )
 @click.option(
     "--name",
@@ -157,14 +157,30 @@ def keygen(force: bool) -> None:
     show_default=True,
     help="Tracker identifier for this connection (e.g. Alice).",
 )
-def connect(relay: str, token: str, name: str) -> None:
+def connect(relay: str, token: str | None, name: str) -> None:
     """Connect to the relay and receive encrypted GPS from the phone."""
+    from gps_bridge.config import load_connection_token, save_connection_token
+
     if not config_exists():
         click.echo(
             "No keypair found. Run `gps-bridge keygen` before connecting.",
             err=True,
         )
         sys.exit(1)
+
+    # Resolve token: CLI arg > saved in config > error
+    if token:
+        save_connection_token(token)
+    else:
+        token = load_connection_token()
+        if not token:
+            click.echo(
+                "No token provided and no saved token found.\n"
+                "Run: gps-bridge connect --token <YOUR_TOKEN>",
+                err=True,
+            )
+            sys.exit(1)
+        click.echo(f"Using saved token from config.")
 
     from gps_bridge.connector import run
     try:

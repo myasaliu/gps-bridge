@@ -21,28 +21,11 @@ import logging
 import websockets
 from cryptography.exceptions import InvalidTag
 
-from gps_bridge.config import GPS_BRIDGE_DIR, ensure_dir, load_private_key
+from gps_bridge.config import DEFAULT_RELAY_URL, load_connection_token, load_private_key
 from gps_bridge.crypto import decrypt_payload
 from gps_bridge.storage import init_db, insert_location, update_phone_status, update_tracker_settings
 
 logger = logging.getLogger("gps_bridge.connector")
-
-_CONNECTION_FILE = GPS_BRIDGE_DIR / "connection.json"
-
-
-def _save_connection_info(relay_url: str, token: str, name: str) -> None:
-    """Persist relay URL and token so `gps-bridge request` can reuse them."""
-    ensure_dir()
-    with open(_CONNECTION_FILE, "w", encoding="utf-8") as f:
-        json.dump({"relay_url": relay_url, "token": token, "name": name}, f)
-
-
-def _load_connection_info() -> dict | None:
-    """Load stored connection info, or None if not available."""
-    if not _CONNECTION_FILE.exists():
-        return None
-    with open(_CONNECTION_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
 async def send_location_request() -> bool:
@@ -51,12 +34,12 @@ async def send_location_request() -> bool:
     Used in 'ask' mode to request user permission before getting GPS.
     Returns True if sent successfully.
     """
-    info = _load_connection_info()
-    if not info:
-        logger.error("No connection info found. Run `gps-bridge connect` first.")
+    token = load_connection_token()
+    if not token:
+        logger.error("No saved token found. Run `gps-bridge connect --token <TOKEN>` first.")
         return False
 
-    ws_url = f"{info['relay_url'].rstrip('/')}/ws/{info['token']}"
+    ws_url = f"{DEFAULT_RELAY_URL.rstrip('/')}/ws/{token}"
     try:
         async with websockets.connect(ws_url) as ws:
             await ws.send(json.dumps({"type": "location_request"}))
@@ -78,9 +61,6 @@ async def run(relay_url: str, token: str, name: str = "default") -> None:
     """
     init_db()
     private_key = load_private_key()
-
-    # Store connection info so `gps-bridge request` can reuse it
-    _save_connection_info(relay_url, token, name)
 
     ws_url = f"{relay_url.rstrip('/')}/ws/{token}"
     logger.info("Connecting to relay: %s (name=%s)", ws_url, name)
