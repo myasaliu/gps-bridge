@@ -59,19 +59,50 @@ gps-bridge config                                   # Show/update settings
 
 ---
 
-## Freshness check
+## How to query location (standard flow)
 
-Compare `received_at` to now (UTC). If older than **10 minutes**, warn the user that location data may be stale.
+**Always follow this flow when the user asks for their location:**
+
+### Step 1 — Get latest data
+
+```bash
+gps-bridge latest --name <NAME>
+```
+
+### Step 2 — Check freshness
+
+Compare `received_at` to now (UTC).
+
+- **< 10 minutes old** → data is fresh, use it directly. Done.
+- **≥ 10 minutes old OR no data** → go to Step 3.
+
+### Step 3 — Check confirm mode (IMPORTANT)
+
+**Do NOT assume stale data means an error.** The phone may be in ask/deny mode.
+
+```bash
+gps-bridge status --name <NAME>
+```
+
+| `提取確認方式` | Meaning | Action |
+|----------------|---------|--------|
+| `auto` | Continuous push | Data should be flowing — stale data likely means `gps-bridge connect` is not running or the phone stopped tracking. Inform the user. |
+| `詢問` (ask) | Request-based | Send a request and tell the user to approve on their phone: |
+| `拒絕` (deny) | Blocked | Tell the user: the phone is set to deny all location requests. |
+
+**For ask mode:**
+
+```bash
+gps-bridge request --name <NAME>
+```
+
+Then tell the user: "已發送位置請求，請在手機上確認。" Wait ~15 seconds, then re-run `gps-bridge latest --name <NAME>` to check if new data arrived.
 
 ---
 
 ## Handling history requests
 
-Check settings first:
-
-```bash
-gps-bridge status --name <NAME>
-```
+Check settings first with `gps-bridge status --name <NAME>`:
 
 - `提取確認方式` = `auto` → data flows continuously
 - `提取確認方式` = `詢問` (ask) → run `gps-bridge request --name <NAME>` first, wait for user approval
