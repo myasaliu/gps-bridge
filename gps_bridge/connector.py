@@ -78,11 +78,11 @@ async def run(relay_url: str, token: str, name: str = "default") -> None:
                     update_phone_status(name, False)
                     continue
                 update_phone_status(name, True)
-                stored = _handle_message(raw, private_key, name)
-                # Confirm receipt to phone (silent — no notification on phone)
-                if stored:
+                response = _handle_message(raw, private_key, name)
+                # Send response back to phone if handler returned one
+                if response:
                     try:
-                        await websocket.send(json.dumps({"type": "location_stored"}))
+                        await websocket.send(json.dumps({"type": response}))
                     except Exception:
                         pass
         except websockets.ConnectionClosed:
@@ -90,8 +90,8 @@ async def run(relay_url: str, token: str, name: str = "default") -> None:
             print("Connection closed, reconnecting...")
 
 
-def _handle_message(raw: str, private_key, name: str) -> bool:
-    """Decrypt and store a single incoming message. Returns True if stored."""
+def _handle_message(raw: str, private_key, name: str) -> str | None:
+    """Process a single incoming message. Returns response type to send back, or None."""
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError:
@@ -110,20 +110,29 @@ def _handle_message(raw: str, private_key, name: str) -> bool:
         )
         logger.info("[%s] Settings updated via push: confirm_mode=%s", name, payload.get("confirm_mode"))
         print(f"[{name}] Settings updated: confirm_mode={payload.get('confirm_mode')}")
-        return False
+        return None
+    if msg_type == "ping":
+        logger.info("[%s] Received ping, sending pong", name)
+        return "pong"
 
     try:
         plaintext = decrypt_payload(payload, private_key)
     except (ValueError, InvalidTag) as exc:
         logger.warning("Decryption failed: %s", exc)
         print(f"[warn] Decryption failed: {exc}")
-        return False
+        return None
 
     try:
         data = json.loads(plaintext)
     except json.JSONDecodeError:
         logger.warning("Decrypted payload is not valid JSON.")
-        return False
+        return None
+
+    # Pubkey verification test — encrypted payload with type=pubkey_test
+    if data.get("type") == "pubkey_test":
+        logger.info("[%s] Pubkey test passed — decryption successful", name)
+        print(f"[{name}] Pubkey test: OK")
+        return "pubkey_ok"
 
     lat = data.get("lat")
     lng = data.get("lng")
@@ -131,7 +140,7 @@ def _handle_message(raw: str, private_key, name: str) -> bool:
 
     if lat is None or lng is None or timestamp is None:
         logger.warning("Missing lat/lng/timestamp in payload.")
-        return False
+        return None
 
     save_history = bool(data.get("save_history", False))
     retention_hours = int(data.get("retention_hours", 168))
@@ -152,4 +161,4 @@ def _handle_message(raw: str, private_key, name: str) -> bool:
 
     history_marker = " [H]" if save_history else ""
     print(f"[{name}] {timestamp}  lat={lat:.6f}  lng={lng:.6f}{history_marker}")
-    return True
+    return "location_stored"
