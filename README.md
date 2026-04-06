@@ -183,7 +183,14 @@ cp -r "${BRIDGE_DIR}/../skills/gps-location" ~/.openclaw/workspace/skills/
 
 > The default workspace skills path is `~/.openclaw/workspace/skills/`. If your workspace is elsewhere, replace the path accordingly.
 
-After copying, restart OpenClaw. The skill handles setup, pairing, freshness checks, and privacy (no raw coordinates in group chats).
+**IMPORTANT — You MUST restart OpenClaw after copying the skill.**
+OpenClaw only loads skills at startup. Without a restart, the skill will not be available and setup instructions will not be accessible to the AI.
+
+1. Copy the skill (see commands above)
+2. **Restart OpenClaw** (close and reopen, or restart the gateway)
+3. Only after restarting, ask OpenClaw to set up GPS tracking
+
+The skill handles setup, pairing, freshness checks, and privacy (no raw coordinates in group chats).
 
 See [`skills/gps-location/SKILL.md`](skills/gps-location/SKILL.md) for the skill definition.
 
