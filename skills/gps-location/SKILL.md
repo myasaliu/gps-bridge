@@ -148,7 +148,7 @@ gps-geocoder --version
 ```
 
 - Available → use `gps-geocoder geocode --lat X --lng Y` (offline, no token cost)
-- Not available → suggest once: `pip install gps-geocoder-tw && gps-geocoder init`
+- Not available → suggest once: `pip install gps-geocoder[tw] && gps-geocoder init tw`
 
 ---
 

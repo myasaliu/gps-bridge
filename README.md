@@ -252,9 +252,9 @@ See [`skills/gps-location/SKILL.md`](skills/gps-location/SKILL.md) for the skill
 
 | Package | Description |
 |---------|-------------|
-| [gps-geocoder-tw](https://github.com/luna61ouo/gps-geocoder-tw) | Offline reverse geocoder for Taiwan — converts coordinates to street-level location names (行政區、街道、地標) using OpenStreetMap data. No API keys, no token cost. |
+| [gps-geocoder](https://github.com/luna61ouo/gps-geocoder) | Offline reverse geocoder with pluggable map system. Core provides geocoding framework; install `gps-geocoder[tw]` for Taiwan map (行政區、街道、地標). Also supports Google Takeout places import and nearby search. No API keys, no token cost. |
 
-Install any extension with `pip install <package>`.
+Install: `pip install gps-geocoder` (core) or `pip install gps-geocoder[tw]` (with Taiwan map), then `gps-geocoder init tw`.
 
 ---
 
